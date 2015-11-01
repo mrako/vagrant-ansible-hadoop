@@ -1,0 +1,39 @@
+# DOWNLOAD HADOOP
+# ====================================================
+
+- name: Download
+  get_url: url={{ hadoop_url }} dest=/var/tmp/{{ hadoop_file }}.tar.gz mode=0755
+
+- name: Extract
+  unarchive:
+    copy=no
+    src=/var/tmp/{{ hadoop_file }}.tar.gz
+    dest=/home/hadoop
+    creates=/home/hadoop/{{ hadoop_file }}
+    owner=hadoop
+    group=hadoop
+
+- name: Add JAVA_HOME
+  lineinfile:
+    dest=/home/hadoop/.bashrc
+    line="export JAVA_HOME={{ java_home }}"
+    owner=hadoop
+    state=present
+    insertafter=EOF
+
+- name: Add to path
+  lineinfile:
+    dest=/home/hadoop/.bashrc
+    line="export PATH=~/{{ hadoop_file }}/sbin:~/{{ hadoop_file }}/bin:$PATH"
+    owner=hadoop
+    state=present
+    insertafter=EOF
+
+- name: Add startup script
+  template:
+    src=startup.sh.j2
+    dest=/home/hadoop/startup.sh
+    backup=no
+    owner=hadoop
+    group=hadoop
+    mode=0755

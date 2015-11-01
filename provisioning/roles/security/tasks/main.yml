@@ -1,0 +1,49 @@
+# Security
+# ====================================================
+
+# HADOOP USER
+# ====================================================
+
+- name: Add group hadoop
+  group: name=hadoop state=present
+
+- name: Add hadoop user
+  action: user name=hadoop group=hadoop home="/home/hadoop" shell="/bin/bash"
+
+- name: Create SSH key
+  sudo_user: hadoop
+  command: ssh-keygen -t rsa -N '' -f /home/hadoop/.ssh/id_rsa creates=/home/hadoop/.ssh/id_rsa
+
+- name: Copy key to authorized
+  command: cp /home/hadoop/.ssh/id_rsa.pub /home/hadoop/.ssh/authorized_keys
+
+- name: Add authorized key
+  authorized_key: user=hadoop key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: Add hadoop user to sudoers
+  action: lineinfile dest=/etc/sudoers regexp='hadoop ALL' line='hadoop ALL=(ALL) NOPASSWD:ALL' state=present
+
+
+# MOSH AND FAIL2BAN
+# ====================================================
+
+- name: Install ufw
+  apt: pkg=ufw state=latest
+
+- name: Install mosh
+  apt: pkg=mosh state=latest
+
+- name: Install fail2ban
+  apt: pkg=fail2ban state=latest
+
+# FIREWALL
+# ====================================================
+
+- name: Add ssh to ufw
+  action: shell ufw allow 22
+
+- name: Add http to ufw
+  action: shell ufw allow 80
+
+- name: Enable ufw
+  action: shell echo 'y' | ufw enable

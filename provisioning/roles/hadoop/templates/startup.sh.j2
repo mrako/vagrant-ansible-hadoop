@@ -1,0 +1,7 @@
+#!/bin/bash
+
+stop-all.sh
+rm -rf ~/{{ hadoop_version }}/dfs/
+hadoop namenode -format
+sleep 10
+start-all.sh
